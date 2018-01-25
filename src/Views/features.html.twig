@@ -1,0 +1,33 @@
+{% extends 'layout.html.twig' %}
+
+{% block content %}
+<div id="option2" class = "box" style="margin-left: auto;margin-right: auto;width: 70%;" >
+                    <h3>Features of GWATCH</h3>
+
+                    <ol>
+                        <li>Unabridged Data Table*
+                            <li>Manhattan Plots for each Association Test across all SNPs
+                                <li>SNAPSHOTS of SNP rest results in a chromosome region of SNP chromosome coordinates, MAF**, P-value Plus QAS***
+                                    <ul>
+                                        <li>2D Heat Plot Snapshot illustrating P-values and QAS of any selected chromosome region
+                                            <li>3D checkerboard Plot Snapshot illustrating P-values and QAS of selected chromosome region
+                                                <li>LD polarized 3D Checkerboard Snapshot illustrating P-values and QAS of any selected chromosome region
+                                                    <li>Dynamic Highway View by Chromosome Browser illustrating P-value and QAS</ul>
+                                    <li>TRAX Reports:
+                                        <ul>
+                                            <li>TRAX Summary page–one page graphic summary of QAS, P-values values for a selected SNP
+                                                <li>TRAX analysis report- Full graphs, curves, tables and statistics for  all association tests for one selected SNP</ul>
+                                        <li>Top association hits
+                                            <ul>
+                                                <li>ranked -log P-value
+                                                    <li>ranked QAS**
+                                                        <li>ranked Density of -log P-value within a SNP genomic region</ul>
+                    </ol>
+                    <p>Abbreviations:
+                        <br>*TABLE - Unabridged Data Table of P-values vs. QAS for all SNPs genotyped
+                        <br>**MAF - minor allele frequency 
+                        <br>***QAS - Quantitative Association Statistic (OR, RH, EZ2 depending on Tests)
+                        <br>
+                </div>
+                
+{% endblock %}

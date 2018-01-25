@@ -1,0 +1,18 @@
+{% extends 'layout.html.twig' %}
+
+{% block content %}
+ <div id="option1" class = "box" style="margin-left: auto;margin-right: auto;width: 70%;" >
+                    <h3>What GWATCH does</h3>
+
+                    <p>GWATCH is a web-based genome browser designed to automate analysis, visualization and release of data from genome-wide association studies (GWAS) and whole genome sequence association studies of genetic epidemiological cohorts. For any association study, GWATCH allows cataloging and viewing of significant statistical results of association tests (p-values, odds ratios, hazard ratios and others) for single or multiple variants (SNP, indels, CNV), for single or multiple tests.
+                        <p>GWAS data are collected and subjected to quality control (call rates by individual and by SNP etc.) by the researchers. Statistical association tests are designed to help detect genetic differences among study groups with alternative phenotypes or disease outcomes. Each SNP-test combination includes information on patient counts by category, p-values and a Quantitative Association Statistic (QAS, a general term for statistics explaining direction and strength of associations: odds ratio, hazard ratio, relative hazard and so on, depending on the particular statistical test). An unabridged data file listing association test, categorical patient counts, p-values and QAS for each SNP-test combination comprises the initial input to GWATCH.
+                            <p>It is also possible, even desirable, that each association test conducted is entered as an analytical routine, as well as SNP genotyping and clinical category designation of study participants. Note that all identifiable genotypic, demographic or clinical data are kept hidden to protect patient privacy permanently.
+                                <p>The display <a href="/description.php" style="color:blue;">features of GWATCH</a> allow for numerous views of the results which are routinely considered by genetic practitioners.
+                                    <p>The promise of GWATCH falls into four general applications:
+                                        <ol>
+                                            <li>Automates gene association search and discovery analysis.
+                                                <li>Advances display of results from Manhattan plots to 2D and 3D snapshots of any gene region and dynamic chromosome highway browser.
+                                                    <li>Allows real time validation/replication of candidate and discovered genes from other sources limiting Bonferroni penalties.
+                                                        <li>Offers solution to privacy constraints on unabridged data sharing and release.</ol>
+                </div>
+{% endblock %}

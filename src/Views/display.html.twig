@@ -1,0 +1,2590 @@
+{% include "header.html.twig" %} 
+
+<!--
+//include_once 'bits/dbFunctions.php';
+
+
+
+# Check polarization
+
+//$polarizationFile = getPolarization($module);
+//$polMode = isset( $_REQUEST['polarized'] );
+
+# Get build and platform
+
+//$BuildAndPlatform = GetBuildAndPlatform($module, $mysqli);
+
+ -->
+ 
+
+<table cellpadding="3" cellspacing="0" width="100%" class="ui-widget-header ui-corner-all" >
+  <tr>
+    <td><h2 style="margin-bottom:0px" helpText="This bar displays
+					the chromosome file currently being viewed.">Welcome to GWATCH - 
+<!--		 
+	
+	Module - {{ module }}, chromosome - {{ chr }}<br><span style="font-size:12px;">
+	{% if BuildAndPlatform.build %} Build - {{ BuildAndPlatform.build }}, {% endif %}
+	{% if BuildAndPlatform.platform %} Plarform - {{ BuildAndPlatform.platform }} {% endif %}</span> 
+	
+	
+	
+-->
+	</h2></td>
+    <td align="right" style="font-size:75%">
+    <button id="btnMain" value="Back to the main page"><a href=/>Back to the main page</a></button>
+ 
+      <input type="checkbox" id="chkPolarize" />
+      <label for="chkPolarize" style="margin-left:10px"
+	     helpText="This button will 'polarize' the GWATCH
+		       display based on Linkage Disequilibrium. Relative to the
+		       currently selected SNP, columns will have their <?php echo ratio ?> changed based on linkage.">Polarize</label>
+      
+    
+	<button id="btnLink" helpText="This button pops up a box
+				     with a URL you can copy and paste. If you send this link to someone they can click on
+				     it and jump to the exact same view.">Link</button>	
+      <input type="checkbox" id="chkHelp" />
+      <label for="chkHelp">Help</label>
+    </td>
+  </tr>
+</table>
+
+<table width="100%">
+  <tr>
+    <td width="80%" height="100%" valign="top">
+    <canvas id="canvas" height="500px"width="100%"
+	    helpText="This is the main 3D view of the GWATCH
+	    Highway.<br/>It shows the different tests along the
+	    horizontal axis and different SNPs along the vertical. The
+	    current SNP is indicated by the white horizontal bar.<br/><br/>The
+	    height of a bar indicates the P-value for that SNP and
+	    test, and the color indicates the QAS - green is
+	    indicates protective and red is deleterious.<br/><br/>
+	    To rotate the view you can click and drag your
+	    mouse. Scrolling with your mouse wheel or trackpad zooms
+	    in and out. <br/><br/>
+	    If you hover your mouse over a particular bar it will
+	    highlight and a box will display with information about
+	    that SNP and test. Clicking when a bar is highlighted will
+	    move the current position to that SNP. If your hover your
+	    mouse over an open area, it will display the current test
+	    for that horizontal position.<br/><br/>
+	    If the 3D area has focus (indicated by a light blue border
+	    around the view, as opposed to grey) then you can control
+	    the view with the keyboard. The arrow keys will move the
+	    view forward and backward. W, A, S, and D also work. 
+	    Holding shift will activate
+	    High Speed mode. The speed you move in High Speed Mode can
+	    be adjusted in the Options tab. Hitting the space bar will
+	    toggle Cruise Control on and off."></canvas>
+    </td>
+    <td valign="top">
+      <div id="slider" style="height:200px" helpText="This is the
+						      chromosome position slider. Drag the handle up and down to
+						      advance to that position in the chromosome."/>
+    </td>
+    <td wdith="200" valign="top">
+      <h3 class="ui-widget-header ui-corner-all" id="currentRowDisplay"
+	  style="height:45px;margin-bottom:5px" helpText="This bar
+							  displays the currently selected SNP name and coordinates.">&nbsp;</h3>
+   
+<!-- start clipboerd -->
+    <!-- 1. Define some markup -->
+    <button class="btn">Copy</button>
+
+    <!-- 2. Include library -->
+    <script src="clipboard/dist/clipboard.min.js"></script>
+
+    <!-- 3. Instantiate clipboard -->
+    <script>
+    var clipboard = new Clipboard('.btn', {
+        text: function() {
+            return  getRowCoords( m_CurrentRow  );
+        }
+    });
+
+    </script>
+
+<!-- end clipboard -->
+
+      <div id="tabs" style="font-size:12">
+	<ul>
+	  <li><a href="#tabs-1" helpText="This is the Options tab. It contains controls for adjusting the view and adding and removing bookmarks." >Options</a></li>
+	  <li><a href="#tabs-2" helpText="This is the Search tab. It allows you to search for a 
+					  particular region of the chromosome by SNP name or coordinates.">Search</a></li>
+	  <li><a href="#tabs-3" helpText="This is the Reports tab. From
+					  here you can generate a variety
+					  of different reports in either
+					  SVG or PDF format.">Snapshots</a></li>
+	</ul>
+	<div id="tabs-1" class="tabWidth" height="100%">
+	  <fieldset class="ui-widget ui-widget-content" id="controlsBox" helpText="This box contains controls for manipulating the current SNP." >
+	    <legend class="ui-widget-header ui-corner-all"><div>Controls</div></legend>
+	    <table cellpadding="0" cellspacing="2" style="font-size:100%"
+		   id="controlButtons" border="0">
+              <tr>
+		<td nowrap="true" colspan="3">
+		  <input type="checkbox"
+			 id="chkCruiseControl" /><label for="chkCruiseControl" helpText="Cruise Control makes the current view
+											 position advance down the highway
+											 automatically. Click this button to toggle it on
+											 and off. Use the Speed box to the left to control
+											 how fast the position moves.">Go/Stop</label>
+		</td>
+		<td align="right">
+		  <label for="inputCruiseSpeed" >Speed</label>
+		  <input id="inputCruiseSpeed" type="text" value="10"
+			 size="8" helpText="This box controls the speed
+					    you travel when the Cruise Control button is toggled."/>
+					    
+			<!-- <a href="#" onclick="changeThreshold( 2 )">2</a> <a href="#" onclick="changeThreshold( 3 )">3</a> <a href="#" onclick="changeThreshold( 4 )">4</a> -->
+			 
+			
+			 
+		</td>
+              </tr>
+              <tr>
+              <td colspan="4" align="center" height="4px" style="border-bottom:1px solid #cccccc">
+               
+              </td>
+              </tr>
+              <tr>
+		<td colspan="3" align="center">
+		  <button id="btnForward"
+			  simulateKeyCode="38"
+			  helpText="Move the view forward along
+				    the highway.">&nbsp;</button>
+		</td>         
+		<td rowspan="2" nowrap="true" align="right">
+		  <input type="checkbox"
+			 id="chkHighSpeed"/><label for="chkHighSpeed"
+						   helpText="Toggling this button enables high speed
+							     mode by default when using the keyboard to
+							     navigate. It is the same as holding down the
+							     shift key
+			 all the time.">High Speed</label>
+		  <input id="inputHighSpeed" type="text" value="10"
+			 size="8" helpText="This box controls the speed you travel when either holding the shift
+					    key or have the High Speed button toggled."/>
+		</td>
+              </tr>
+              <tr>
+		<td align="right">
+		  <button id="btnLeft"
+			  simulateKeyCode="37" 
+			  helpText="Move the view to the left.">&nbsp;</button></td>
+		<td align="center">
+		  <button id="btnBack"
+			  simulateKeyCode="40"
+			  helpText="Move the back down the highway.">&nbsp;</button>
+		</td>
+		<td align="left">
+		  <button id="btnRight" simulateKeyCode="39"
+			  helpText="Move the view to the right.">&nbsp;</button>
+		</td>
+              </tr>
+	    </table>
+	  </fieldset>
+<fieldset class="ui-widget ui-widget-content" helpText="This box contains controls for adjusting the view of the current SNP.">
+ 	<legend class="ui-widget-header ui-corner-all"><div>View</div></legend>
+	    <table width="100%" style="font-size:12px">
+	      <tr>
+		<td colspan="2" noWrap="true">
+		  <input type="checkbox" id="chkInvert" />
+		  <label for="chkInvert" helpText="This button flips the
+						   vertical axis of the 3D view.">Invert</label>
+		  <button id="btnReset" style="margin-left:10px"
+			  helpText="This button resets the view orientation back to
+				    the default, looking down the highway.">Reset</button>
+	<!--	  <button id="btnScreenShot" style="margin-left:10px"
+			  helpText="This button takes a copy of the current view
+				    and opens it in a new browser tab. From there you can
+				    save it to disk or print it as needed. ">Screen Shot</button>
+		  --> 
+		  
+		 
+		</td>
+	      </tr>
+	      <tr>
+		<td>
+		  <label>
+		    Zoom&nbsp;&nbsp;&nbsp;
+		  </label>
+		</td>
+		<td width="100%" helpText="This slider controls zooming in
+					   and out on the 3D view. It works the same way as
+					   scrolling with the mouse or trackpad.">
+		  <div  id="zoomSlider" width="100%"/> </fieldset>
+		</td>
+	      </tr>
+	      <tr>
+	      	<td colspan="2">
+	      	 <label for="pValueThreshold" >Threshold of -log(p) > </label>  
+	      	 
+			<select id="pValueThreshold" onChange="changeThreshold( this.value )">
+<!--		<?php 
+			
+				 
+			
+			for($i=1;$i<=4;$i++){
+				if(!$_GET['threshold'])$_GET['threshold']=2;
+				if($_GET['threshold'] == $i)$selected = "selected";
+				else $selected = ""; 
+				echo "<option value=\"$i\" $selected>$i";
+		 	
+		 	}
+			
+			
+			
+			?>  -->
+			</select> 
+	      	</td>
+	      </tr>
+	    </table>
+	  
+	  
+	 </fieldset>   
+	  
+		  
+	  
+	  	<fieldset class="ui-widget ui-widget-content" helpText="In this
+								  box you can select from the various groups of tests you
+								  are interested in. Checking or unchecking a box will
+								  widen or narrow the highway view.">
+	    <legend class="ui-widget-header ui-corner-all"><div>Select Groups of Tests</div></legend>
+	  
+	    <div id="stageCheckboxes" class="ui-widget-content" style="overflow:auto;height:100%">
+	<!--	
+		<a href="#" style="margin:5px;" onClick="invertCheckboxes('all')">All</a>
+		<a href="#" style="margin:5px;" onClick="invertCheckboxes('none')">None</a>
+		<a href="#" style="margin:5px;" onClick='invertCheckboxes()'>Invert</a>
+	-->
+		<a href="#" style="margin:5px; font-size:9px;" onClick='updateMask(0);updateStageMask();'>Test type</a><img src="images/q.png" title="Click to regroup the tracks on the highway by Test type">/<a href="#" style="margin:5px; font-size:9px;" onClick='updateMask(1);updateStageMask();'>Cohort</a><img src="images/q.png" title="Click to regroup the tracks on the highway by Cohort">/<a href="#" style="margin:5px; font-size:9px;" onClick='updateMask(2);updateStageMask();'>Hypothesis</a><img src="images/q.png" title="Click to regroup the tracks on the highway by Hypothesis">/<a href="#" style="margin:5px; font-size:9px;" onClick='updateMask(3);updateStageMask();'>Genetic model</a><img src="images/q.png" title="Click to regroup the tracks on the highway by Genetic model">
+	
+	    </div>
+	    
+	    
+	      
+	  </fieldset>
+	  
+	  
+	 
+	  
+	  
+	  
+	  <fieldset class="ui-widget ui-widget-content" 
+		    helpText="In this box you can add and remove bookmarks
+			      to mark specific regions of interest on this
+			      chromosome. Click the + button to add a new bookmark at
+			      the current SNP. Select one or more bookmarks and press
+			      the - button to delete them. By default new bookmarks
+			      have the SNP name and coordinates. If you wish to edit
+			      the name, double click on the bookmark.">
+	    <legend class="ui-widget-header ui-corner-all"><div>Bookmarks</div></legend>
+	    <div id="bookmarkBox" class="ui-widget-content"
+		 style="overflow:auto" height="100%">
+	      <ol id="bookmarks">
+	      </ol>
+	      <div style="text-align:right">
+		<button id="btnAddBookmark">Add Bookmark</button>
+		<button id="btnRemoveBookmark">Remove Bookmark</button>
+	      </div>
+	    </div>
+	    
+	  </fieldset>     
+	</div>
+	
+	<div id="tabs-2" class="tabWidth">
+	  <div style="white-space:nowrap;">
+         <select id="searchType" helpText="This drop-down box allows you to choose between searching on the current chromosome or on the whole genome.">
+              <option value="0">Current chr.</option>
+              <option value="1">Whole Genome</option>
+               
+            </select>
+        
+            <input type="text" id="searchBox" placeholder="SNP, Gene, Coordinates or p-value" style="width:200px"
+		   helpText="Enter your search string here. Press Enter
+			     or click the magnifying glass icon to start the search."/>
+            <img id="waitingSearchResults" src="images/loader.gif" 
+		 style="display:none;vertical-align:middle;"/>
+            <button id="searchButton" style="width:24px;height:24px;vertical-align:middle">Search</button>
+          </div>
+          <br/>
+	  <div id="searchResults" class="ui-widget-content" style="overflow:auto;display:none">
+          </div>
+	</div>
+	<div id="tabs-3" class="tabWidth">
+	  <div style="white-space:nowrap;width:300px">
+	    Click a button to generate a report for data<br/> at the
+	    current SNP. The report will only include<br/> the stages you have 
+            currently selected.<br/><br/>
+	    <table width="100%" style="font-size:12px" id="reportTable">
+	      <tr>
+		<td helpText="GWATCH Array is a 2 dimensional plot of the
+			      P-values and tests. Clicking either of the two buttons on the
+			      right will create a report centered on the
+			      currently selected SNP.">
+		  GWATCH 2D Snapshot 
+		</td>
+		<td align="right" nowrap="true">
+		  <a 
+		     target="_blank" format="svg" reportType="array" helpText="SVG stands for Scalable Vector
+									       Graphics and is a web standard for displaying graphs, charts etc.
+									       Modern browsers support native display and printing of this format.">SVG</a>
+		  <a 
+		     target="_blank" format="pdf" reportType="array"  helpText="Portable
+										Document Format">PDF</a><br/>
+		</td>
+	      </tr>
+	      <tr>
+		<td helpText="GWATCH 3D Snapshot is a 3 dimensional plot of the
+			      P-values, QAS and tests. It
+			      contains the same information as the main 3D
+			      view but is formatted for printing. Clicking either of the two buttons on the
+			      right will create a report centered on the
+			      currently selected SNP.">
+		  GWATCH 3D Snapshot
+		</td>
+		<td align="right" nowrap="true">
+		  <a id="gwasArraySVG"
+		     target="_blank" format="svg" reportType="snapshot" helpText="SVG stands for Scalable Vector
+										  Graphics and is a web standard for displaying graphs, charts etc.
+										  Modern browsers support native display and printing of this format.">SVG</a>
+		  <a id="gwasArrayPDF"
+		     target="_blank" format="pdf" reportType="snapshot" helpText="Portable
+										  Document Format">PDF</a><br/>
+		</td>
+	      </tr>
+	     
+	     
+	      
+	     
+	      <tr>
+		<td helpText="GWATCH 3D Snapshot is a 3 dimensional plot of the
+			      P-values, QAS and tests. It
+			      contains the same information as the main 3D
+			      view but is formatted for printing. Clicking either of the two buttons on the
+			      right will create a report centered on the
+			      currently selected SNP. This will generate a
+			      report with LD polarization enabled around
+			      the currently selected SNP.">
+		  GWATCH 3D Snapshot  Polarized
+		</td>
+		<td align="right" nowrap="true">
+		  <a id="gwasArraySVG"
+		     target="_blank" format="svg" reportType="snapshot-polarized" helpText="SVG stands for Scalable Vector
+											    Graphics and is a web standard for displaying graphs, charts etc.
+											    Modern browsers support native display and printing of this format.">SVG</a>
+		  <a id="gwasArrayPDF"
+		     target="_blank" format="pdf" reportType="snapshot-polarized" helpText="Portable
+											    Document Format">PDF</a><br/>
+		</td>
+	 
+	      </tr>
+	    </table>
+	  </div>
+	</div>
+      </div>  
+    </td>
+  </tr>
+</table>
+<div id="dialog-confirm" title="Delete bookmarks?" style="font-size:85%">
+  <span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 20px 0;"></span>
+  Are you sure you want to delete the selected bookmarks?
+</div>
+<div id="hoverText" class="hoverInfo ui-widget-header ui-corner-all" style="font-scale:75%" ></div>
+<div id="welcomeDialog" title="Welcome to GWATCH Highway" style="font-size:80%">
+  As this is the first time you have visited this site, the On-line Help
+  function has been automatically enabled. As you move your mouse
+  over various items in the user interface, a box will pop up
+  describing the item. <br/><br/>
+  To disable the On-line Help, or to re-enable it later, click
+  the Help button in the top right hand corner of the screen.
+</div>
+<div id="polarizationMsg">Polarized</div>
+
+
+<script>
+
+function getUrlVars()
+{
+    var vars = [], hash;
+    var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
+ 
+    for(var i = 0; i < hashes.length; i++)
+    {
+        hash = hashes[i].split('=');
+        vars.push(hash[0]);
+        vars[hash[0]] = hash[1];
+    }
+ 
+    return vars;
+}
+var vars = []
+
+vars = getUrlVars()
+
+ 
+
+
+</script>
+
+
+
+
+
+  <script id="shader-fs" type="x-shader/x-fragment">
+    #ifdef GL_ES
+    precision highp float;
+    #endif
+    varying vec3 vColor;
+
+
+    void main(void) {
+           gl_FragColor = vec4(vColor.xyz, 1.0);
+    }
+  </script>
+  <script id="shader-vs" type="x-shader/x-vertex">
+   #ifdef GL_ES
+    precision highp float;
+    #endif
+    attribute vec3 aVertexPosition;
+    attribute vec3 aVertexColor;
+    attribute vec3 aVertexNormal;
+
+    uniform mat4 uMVMatrix;
+    uniform mat4 uPMatrix;
+    uniform mat3 uNMatrix;
+
+
+    uniform vec3 uAmbientColor;
+
+    uniform vec3 uLightingDirection;
+    uniform vec3 uDirectionalColor;
+
+    varying vec3 vColor;
+
+
+    void main(void) {
+        gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+        vec3 transformedNormal = uNMatrix * aVertexNormal;
+    
+        float directionalLightWeighting = max(dot( transformedNormal, uLightingDirection), 0.0);
+        vec3 lighting = uAmbientColor + uDirectionalColor * directionalLightWeighting;
+
+        vColor.rgb = aVertexColor * lighting;
+    }
+  </script>
+
+  <script id="text-shader-fs" type="x-shader/x-fragment">
+    #ifdef GL_ES
+    precision highp float;
+    #endif
+
+   varying vec2 vTexCoords;  
+   uniform sampler2D uSampler;
+   uniform vec3 uTextColor;
+
+    void main(void) {
+    float alpha = texture2D( uSampler, vTexCoords ).r;
+        gl_FragColor = vec4(uTextColor.rgb, alpha );
+    }
+  </script>
+  <script id="text-shader-vs" type="x-shader/x-vertex">
+   #ifdef GL_ES
+    precision highp float;
+    #endif
+    attribute vec2 aVertexPosition;
+    attribute vec2 aTexCoords;
+
+    uniform mat4 uMVMatrix;
+    uniform mat4 uPMatrix;
+
+    varying vec2 vTexCoords;  
+
+
+    void main(void) {
+        gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 0, 1.0);
+    vTexCoords = aTexCoords;
+    }
+  </script>
+
+  <script type="text/javascript">
+
+    var gl;
+
+    var m_ShaderProgram;
+	var colOrder = [];
+	var numOrder = [];
+    var m_TextShaderProgram;
+	var storage_ColumnData; 
+    var m_Font;
+    var m_WhiteText;
+    var m_BlackText;
+    var m_GreenkText;
+    var m_AllTextArray;
+    var m_module = "{{ module }}";
+    var m_chr = {{ chr }} ;
+
+    var ROW_BATCH_SIZE = 200; 
+ 
+    var m_FileName = false; //<!-- "<?php echo $_REQUEST['file']; ?>"; -->
+    var m_PolarizationFileName = false; // <!-- "<?php echo $polarizationFile; ?>"; -->
+
+    var m_BookmarksCookieName = m_FileName + "_bookmarks";
+    var m_SelectedBookmarks = [];
+
+    var cruiseControlCookieName = "cruiseCookie";
+    var highSpeedCookieName = "highSpeedCookie";
+	var mf;
+	var rowDensity = [];
+    function initShaders() {
+        var fragmentShader = getShader(gl, "shader-fs");
+        var vertexShader = getShader(gl, "shader-vs");
+	
+        m_ShaderProgram = gl.createProgram();
+        gl.attachShader(m_ShaderProgram, vertexShader);
+        gl.attachShader(m_ShaderProgram, fragmentShader);
+        gl.linkProgram(m_ShaderProgram);
+
+        if (!gl.getProgramParameter(m_ShaderProgram, gl.LINK_STATUS)) {
+            alert("Could not initialise shaders");
+        }
+
+        gl.setShader(m_ShaderProgram);
+	
+        m_ShaderProgram.vertexPositionAttribute = gl.getAttribLocation(m_ShaderProgram, "aVertexPosition");
+        m_ShaderProgram.vertexColorAttribute = gl.getAttribLocation(m_ShaderProgram, "aVertexColor");
+	m_ShaderProgram.vertexNormalAttribute = gl.getAttribLocation(m_ShaderProgram, "aVertexNormal");
+	
+        gl.enableVertexAttribArray(m_ShaderProgram.vertexPositionAttribute);
+        gl.enableVertexAttribArray(m_ShaderProgram.vertexColorAttribute);
+        gl.enableVertexAttribArray(m_ShaderProgram.vertexNormalAttribute);
+
+
+        m_ShaderProgram.projMatrixUniform = gl.getUniformLocation(m_ShaderProgram, "uPMatrix");
+        m_ShaderProgram.modelViewMatrixUniform = gl.getUniformLocation(m_ShaderProgram, "uMVMatrix");
+        m_ShaderProgram.nMatrixUniform = gl.getUniformLocation(m_ShaderProgram, "uNMatrix");
+
+	m_ShaderProgram.ambientColorUniform = gl.getUniformLocation(m_ShaderProgram, "uAmbientColor");
+        m_ShaderProgram.lightingDirectionUniform = gl.getUniformLocation(m_ShaderProgram, "uLightingDirection");
+        m_ShaderProgram.directionalColorUniform = gl.getUniformLocation(m_ShaderProgram, "uDirectionalColor");
+	
+	gl.uniform3f( m_ShaderProgram.ambientColorUniform, 0.5, 0.5, 0.5 );
+	var lightDir = vec3.create( [ 5.0,  5.0, 15.0 ] );
+	vec3.normalize( lightDir );
+	gl.uniform3f( m_ShaderProgram.lightingDirectionUniform, lightDir[0], lightDir[1], lightDir[2] );
+	gl.uniform3f( m_ShaderProgram.directionalColorUniform, 0.7, 0.7, 0.7 );
+	
+	
+	var textFragmentShader = getShader(gl, "text-shader-fs");
+        var textVertexShader = getShader(gl, "text-shader-vs");
+	
+        m_TextShaderProgram = gl.createProgram();
+        gl.attachShader(m_TextShaderProgram, textVertexShader);
+        gl.attachShader(m_TextShaderProgram, textFragmentShader);
+        gl.linkProgram(m_TextShaderProgram);
+	
+        if (!gl.getProgramParameter(m_TextShaderProgram, gl.LINK_STATUS)) {
+            alert("Could not initialise shaders");
+        }
+
+        gl.setShader(m_TextShaderProgram);
+	
+	m_TextShaderProgram.projMatrixUniform = gl.getUniformLocation(m_TextShaderProgram, "uPMatrix");
+        m_TextShaderProgram.modelViewMatrixUniform = gl.getUniformLocation(m_TextShaderProgram, "uMVMatrix");
+	m_TextShaderProgram.sampler = gl.getUniformLocation(m_TextShaderProgram, "uSampler");    
+	m_TextShaderProgram.color = gl.getUniformLocation(m_TextShaderProgram, "uTextColor");    
+	
+	m_TextShaderProgram.vertexPositionAttribute = gl.getAttribLocation(m_TextShaderProgram, "aVertexPosition");
+        m_TextShaderProgram.vertexTexCoordAttribute = gl.getAttribLocation(m_TextShaderProgram, "aTexCoords");
+	
+	gl.setShader(m_ShaderProgram);
+	
+    }
+
+    var m_ViewMatrix = mat4.create();
+    var m_ModelViewMatrix = mat4.create();
+    var m_ProjMatrix = mat4.create();
+
+    function setMatrixUniforms() {
+        gl.uniformMatrix4fv(gl.currentShader.projMatrixUniform, false, m_ProjMatrix);
+        gl.uniformMatrix4fv(gl.currentShader.modelViewMatrixUniform, false, m_ModelViewMatrix);
+
+	if ( gl.currentShader.nMatrixUniform )
+	{
+            var normalMatrix = mat3.create();
+            mat4.toInverseMat3(m_ModelViewMatrix, normalMatrix);
+            mat3.transpose(normalMatrix);
+            
+            gl.uniformMatrix3fv( gl.currentShader.nMatrixUniform, false, normalMatrix);
+	}
+    }
+
+
+    var m_InvertView = false;
+    var m_ColumnData;
+    
+    var m_NumRows;
+    var m_CurrentRow = {{ UrlRow }};
+
+    var m_HoverItem;
+    var tab;
+    var m_RowCacheList = [];
+    var m_DyingRowCacheList = [];
+    var m_LookAt = vec3.create( [0, 0, 0] );
+
+    var m_Eye = vec3.create( {{ eyepos }} );
+    var m_AngleX = {{ anglex }};
+    var m_Distance = {{ distance }};
+    var m_OffsetX = {{ offsetx }};
+
+    var m_CruiseControl = false;
+    var m_Polarized = false; 
+    var m_PolarizationData = null;
+	var CurrentURL = "{{ CurrentURL }}";
+
+
+    function drawRowCache( rowCache, gl, eyeMatrix )
+    {
+	var offset = rowCache.startRow - m_CurrentRow;
+	
+	if (rowCache.age >= 1.0 )
+	{
+            mat4.translate( eyeMatrix, vec3.create( [0, 0, -offset] ), m_ModelViewMatrix );
+            setMatrixUniforms();
+	}
+	else
+	{
+            rowCache.age += 0.05;
+            var translateMat = mat4.create();
+            mat4.translate( eyeMatrix, vec3.create( [0, 0, -offset] ), translateMat );
+            mat4.scale( translateMat, vec3.create( [1, rowCache.age, 1 ] ), m_ModelViewMatrix );
+            setMatrixUniforms();            
+            
+	}
+	rowCache.draw( gl, m_ShaderProgram );
+	if ( m_HoverItem != null
+	     && m_HoverItem.rowCache == rowCache )
+	{
+	    var blendA = $("#hoverText").css("opacity" );
+
+	    gl.blendColor( 1.0, 1.0, 1.0, 1 - blendA );
+	    gl.blendFunc( gl.CONSTANT_COLOR, gl.ZERO );
+	    gl.enable( gl.BLEND );
+	    rowCache.drawOne( gl, m_ShaderProgram, m_HoverItem.indexStart );
+	    gl.disable( gl.BLEND );
+	    gl.blendFunc( gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA );
+	}
+    }
+
+    function drawDyingRowCache( rowCache, gl, eyeMatrix )
+    {
+	var offset = rowCache.startRow - m_CurrentRow;
+
+	rowCache.age -= 0.05;
+	var translateMat = mat4.create();
+	mat4.translate( eyeMatrix, vec3.create( [0, 0, -offset] ), translateMat );
+	mat4.scale( translateMat, vec3.create( [1, rowCache.age, 1 ] ), m_ModelViewMatrix );
+	setMatrixUniforms();            
+	
+	rowCache.draw( gl, m_ShaderProgram );
+    }
+
+    var m_Road;
+    
+    function drawScene() 
+    {
+        
+	gl.enableVertexAttribArray(m_ShaderProgram.vertexPositionAttribute);
+        gl.enableVertexAttribArray(m_ShaderProgram.vertexColorAttribute);
+        gl.enableVertexAttribArray(m_ShaderProgram.vertexNormalAttribute);
+
+        gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+        mat4.perspective(60, gl.viewportWidth / gl.viewportHeight, 0.5, 1500.0, m_ProjMatrix);
+	
+	var up = vec3.create( [0, 1, 0] );
+	m_ViewMatrix = mat4.create();
+	var eyeOffset = vec3.create( m_Eye );
+	var lookAtOffset = vec3.create( m_LookAt );
+	eyeOffset[0] += m_OffsetX;
+	lookAtOffset[0] += m_OffsetX;
+        mat4.lookAt( eyeOffset, lookAtOffset, up, m_ViewMatrix );
+	
+	gl.setShader( m_ShaderProgram );
+	
+        // all rows share the same normals, they are just 
+	// boxes so bind it once before we draw any rows
+	// the normal buffer is created once we get the first result
+	// back we can't draw anything until then
+	if ( RowCache.prototype.normalBuffer )
+	{
+	    
+            gl.bindBuffer(gl.ARRAY_BUFFER, RowCache.prototype.normalBuffer );
+            gl.vertexAttribPointer( m_ShaderProgram.vertexNormalAttribute, 3, gl.FLOAT, false, 0, 0 );
+            
+	    var matrixToUse = mat4.create( m_ViewMatrix );
+	    if ( m_InvertView )
+	    {
+		mat4.scale( m_ViewMatrix, vec3.create( [ 1, 1, -1 ] ), matrixToUse );
+		gl.frontFace( gl.CW );
+	    }
+
+	    
+            for ( var i = 0; i < m_RowCacheList.length; ++i )
+            {
+		drawRowCache( m_RowCacheList[i], gl, matrixToUse );
+            }
+	    
+            for ( var i = 0; i < m_DyingRowCacheList.length; ++i )
+            {
+		drawDyingRowCache( m_DyingRowCacheList[i], gl, matrixToUse );
+            }
+
+	    if ( m_InvertView )
+	    {
+		gl.frontFace( gl.CCW );
+	    }
+	}
+	
+	m_ModelViewMatrix = m_ViewMatrix;
+	setMatrixUniforms();            
+	
+	m_Road.draw( gl, m_ShaderProgram );
+	
+	gl.disableVertexAttribArray(m_ShaderProgram.vertexPositionAttribute);
+        gl.disableVertexAttribArray(m_ShaderProgram.vertexColorAttribute);
+        gl.disableVertexAttribArray(m_ShaderProgram.vertexNormalAttribute);
+	
+
+	gl.setShader( m_TextShaderProgram );
+	
+	var textMatrix = mat4.create();
+	
+	var size = m_ColumnData.numVisibleColumns * 0.5;
+	var textDistance =  m_Distance * 0.3;
+	mat4.translate( m_ViewMatrix, vec3.create( [ -size + 0.25, 0, textDistance ] ), textMatrix );
+	
+	mat4.rotateZ( textMatrix, -1.57079633 );
+	mat4.rotateY( textMatrix, -1.57079633 );
+	var scale = 1.0 / 32;
+	mat4.scale( textMatrix, vec3.create( [ scale, scale, scale ] ) );
+	
+	m_ModelViewMatrix = textMatrix;
+	// have to set these again after switching programs
+	setMatrixUniforms();
+		// canvas onto the webpage.
+	// we really don't want this - we just want to blend with what is in the framebuffer
+	// and leave dest alpha alone.
+	// so mask it out.
+	gl.colorMask( true, true, true, false );
+	m_WhiteText.draw( gl );
+	m_BlackText.draw( gl )
+	
+//text	
+	gl.colorMask( true, true, true, true );
+	
+	
+	gl.setShader( m_TextShaderProgram );
+	
+	var textMatrix = mat4.create();
+	
+	var size = m_ColumnData.numVisibleColumns * .5 + 7;
+	var textDistance =  m_Distance * 0;
+	mat4.translate( m_ViewMatrix, vec3.create( [ size , 0, textDistance ] ), textMatrix );
+	
+	mat4.rotateZ( textMatrix, -1.57079633 ); 
+	mat4.rotateX( textMatrix, -3.14079633 );
+	mat4.rotateY( textMatrix, -1.57079633 );
+	var scale = 1.0 / 7;
+	mat4.scale( textMatrix, vec3.create( [ scale, scale, scale ] ) );
+	
+	
+	
+	m_ModelViewMatrix = textMatrix;
+	// have to set these again after switching programs
+	setMatrixUniforms();
+	// note - the dest alpha value is used to composite the 
+	// canvas onto the webpage.
+	// we really don't want this - we just want to blend with what is in the framebuffer
+	// and leave dest alpha alone.
+	// so mask it out.
+	
+	var greenColumnText = "";
+	greenColumnText = getRowGeneName( m_CurrentRow )
+	m_GreenText = new TextString( greenColumnText, gl, m_Font, m_TextShaderProgram );
+	m_GreenText.color = [1,1,1]; 
+	m_GreenText.size = 150
+	
+	gl.colorMask( true, true, true, false );
+	
+	m_GreenText.draw( gl );
+	
+	gl.colorMask( true, true, true, true );
+	
+	gl.setShader( null );
+    }
+
+    var m_CurrentlyPressedKeys = {};
+
+    function disabledEventPropagation(event)
+    {
+	if (event.stopPropagation){
+            event.stopPropagation();
+	}
+	else if(window.event){
+            window.event.cancelBubble=true;
+	}
+    }
+
+    var KEY_CODES_TO_EAT = { 37 : 1, 38 : 1, 39 : 1, 40: 1 };
+    function eatKeyPress( event )
+    {
+    
+	var keyCode = event.keyCode;
+	if ( KEY_CODES_TO_EAT[ keyCode ] )
+	{
+            disabledEventPropagation( event );
+            return false;
+	}
+    }
+	
+	function getUrlVar(){
+    var urlVar = window.location.search; 
+    var arrayVar = []; 
+    var valueAndKey = []; 
+    var resultArray = []; 
+    arrayVar = (urlVar.substr(1)).split('&'); 
+    if(arrayVar[0]=="") return false; 
+    for (i = 0; i < arrayVar.length; i ++) { 
+        valueAndKey = arrayVar[i].split('='); 
+        resultArray[valueAndKey[0]] = valueAndKey[1];
+    }
+    return resultArray; 
+	}
+	
+	
+	
+    function handleKeyDown(event) {
+	m_CurrentlyPressedKeys[event.keyCode] = true;
+	if ( event.keyCode == 32 )
+	{
+	    if ( m_CruiseControl )
+	    {
+		disableCruiseControl();
+	    }
+	    else
+	    {
+		enableCruiseControl();
+	    }
+	}
+	return eatKeyPress( event );
+    }
+
+    function handleKeyUp(event) {
+	m_CurrentlyPressedKeys[event.keyCode] = false;
+	return eatKeyPress( event );
+    }
+
+
+    function updateRowCaches() 
+    {
+	var newRowCacheList = [];
+	var rowRangeStart = getRowRangeStart(); 
+	var rowRangeEnd = getRowRangeEnd();
+	
+	var startRows = [];
+	var newDyingRows = [];
+	
+	for ( var i = 0; i < m_DyingRowCacheList.length; ++i )
+	{
+            var rc = m_DyingRowCacheList[i];
+            if ( rc.age >= 0 )
+            {
+		newDyingRows.push( rc );
+            }
+            else
+            {
+		// explictly free the gl buffers to be a good citizen
+		rc.deleteBuffers( gl );
+		delete rc;
+            }
+	}
+	
+	for ( var i = 0; i < m_RowCacheList.length; ++i )
+	{
+            var rc = m_RowCacheList[i];
+            if (  ( rc.startRow + rc.rowCount  > rowRangeStart )
+		  && ( rc.startRow < rowRangeEnd ) )
+            {
+		newRowCacheList.push( rc ); // still valid
+		startRows[ rc.startRow ] = 1; // record the start index
+            }
+            else
+            {
+		newDyingRows.push( rc );
+            }
+	
+	}
+	
+	var startNewRowsCheck = rowRangeStart - ( rowRangeStart % ROW_BATCH_SIZE );
+	startNewRowsCheck  = startNewRowsCheck < 0 ? 0 : startNewRowsCheck;
+	for ( var newRowIndex = startNewRowsCheck; newRowIndex < rowRangeEnd; newRowIndex += ROW_BATCH_SIZE )
+	{
+            if ( startRows[ newRowIndex ] )
+            {
+				continue; // already got it
+            }
+            
+            newRowCacheList[ newRowCacheList.length ] = createRowCache(m_module, m_chr, gl, newRowIndex, ROW_BATCH_SIZE, 
+									m_ColumnData, m_PolarizationData, updateRowName );
+			 
+	}
+	
+        m_RowCacheList = newRowCacheList;
+	m_DyingRowCacheList = newDyingRows;
+    }
+
+    function tick() {
+	requestAnimFrame(tick);
+	handleKeys();
+	drawScene();
+	updateRowCaches();
+    }
+
+    function getRowData( row )
+    {
+	for ( var i = 0; i < m_RowCacheList.length; ++i )
+	{
+            var rc = m_RowCacheList[i];
+            if ( ( row >= rc.startRow)  && ( row < rc.startRow + rc.rowCount ) )
+            {
+		if ( rc.data )
+		{
+		    var relativeRow = row - rc.startRow;
+		    return rc.data["Rows"][ relativeRow ];
+		}
+		break;
+            }
+	}
+
+	return null;
+	
+    } 
+
+    function getRowName( row )
+    {
+	var data = getRowData( row );
+	var d = ''
+	if ( data )
+	{	
+		if(data["Gene"] == null)data["Gene"] = ''
+		if(data["Gene"]) d = ' - ' 
+		if(data["Coords"] != 0) var coords = " - " + addCommas(  data["Coords"] )
+		else {var coords = ""}
+	 
+	    return data["Name"] + "" + coords + "" + d + data["Gene"] ;
+	}
+	return "Loading...<img src='images/loader.gif'/>";
+    }
+
+
+
+    function getRowCoords( row )
+    {
+	var data = getRowData( row );
+	 
+	if ( data )
+	{	
+		 
+		return data["Coords"]
+	 
+    }
+    }
+    
+function getRowNameWithOutCoord( row )
+    {
+    
+    
+	var data = getRowData( row );
+	if ( data )
+	{
+	    return data["Name"]  ;
+	}
+	return "";
+    }
+    
+function getRowGeneName( row )
+    {
+    
+    
+	var data = getRowData( row );
+	if ( data )
+	{
+	    return data["Gene"]  ;
+	}
+	return "";
+    }
+    
+    
+
+    function getRowColor( row )
+    {
+	var data = getRowData( row );
+	if ( data )
+	{	
+		//alert(data.averageColor)
+	   // return data.averageColor;
+	}
+	return "white";
+    }
+
+    function updateRowName( )
+    {
+	get("currentRowDisplay").innerHTML = getRowName( m_CurrentRow )
+    }
+
+    function setCurrentRow( row )
+    {
+	m_CurrentRow = Math.max( 0, ( Math.min( m_NumRows - 1, row ) ) );
+	$("#slider").slider( "value", m_CurrentRow );
+	updateRowName();
+	hideHoverText();
+	closeLinkBox();
+    }   
+    
+    function disableCruiseControl()
+    {
+	if ( m_CruiseControl )
+	{
+            $("#chkCruiseControl").click();
+            m_CruiseControl = false;
+	}
+    }
+
+    function enableCruiseControl()
+    {
+	if ( !m_CruiseControl )
+	{
+            $("#chkCruiseControl").click();
+            m_CruiseControl = true;
+	}
+    }
+
+    function jumpToRow( row )
+    {
+	disableCruiseControl();
+	clearPolarizationData();
+	
+	setCurrentRow( row );
+    }
+    
+    function changeThreshold( pvalue )
+    {
+	 	var eyePosString = '[' + m_Eye[0] + ',' + m_Eye[1] + ',' + m_Eye[2] + ']';
+	 	var url = CurrentURL + "?module=" + m_module + "&chr=" + m_chr;
+	       url += '&row=' + m_CurrentRow;
+	       url += '&distance=' + m_Distance;
+	       url += '&anglex=' + m_AngleX;
+	       url += '&offsetx=' + m_OffsetX;
+	       url += '&eyepos=' + escape( eyePosString );
+	 	window.open(url + '&threshold=' + pvalue, "_self")
+
+	 
+    }
+    
+    
+    function jumpToRowAndChr( row, chrm )
+    {
+	 
+	 
+	window.open("/display.php?module="+ m_module +"&chr="+ chrm +"&row="+ row);
+
+	 
+    }
+
+    function handleKeys() 
+    {
+	var size = m_ColumnData.numVisibleColumns * 0.5;
+	if (m_CurrentlyPressedKeys[37] || m_CurrentlyPressedKeys[65] ) 
+	{
+            m_OffsetX = Math.max( m_OffsetX - 2, -size );
+	    hideHoverText();
+	    closeLinkBox();
+	    
+	}
+	
+	if (m_CurrentlyPressedKeys[39] || m_CurrentlyPressedKeys[68] ) 
+	{
+            m_OffsetX = Math.min( m_OffsetX + 2, size );
+	    hideHoverText();
+	    closeLinkBox();
+	}
+
+	// can't move while polarized.
+	if ( m_Polarized ) return;
+
+	var shiftDown = m_CurrentlyPressedKeys[16];
+	//shiftDown |= get("chkHighSpeed").checked;
+	
+	var invertFactor = m_InvertView ? -1 : 1;
+
+	var highSpeed = $("#inputHighSpeed").spinner("value");
+	
+	if (m_CurrentlyPressedKeys[38] || m_CurrentlyPressedKeys[87] ) 
+	{
+            // Up cursor key
+            if ( shiftDown )
+            {
+		setCurrentRow( m_CurrentRow + highSpeed * invertFactor );
+            }
+            else
+            {
+		setCurrentRow( m_CurrentRow + invertFactor );
+            }
+	}
+	if (m_CurrentlyPressedKeys[40] || m_CurrentlyPressedKeys[83] )  
+	{
+            // Down cursor key
+            if ( shiftDown )
+            {
+		setCurrentRow( m_CurrentRow - highSpeed * invertFactor );
+            }
+            else
+            {
+		setCurrentRow( m_CurrentRow - invertFactor );
+            }
+	}
+
+	if ( m_CruiseControl )
+	{
+            setCurrentRow( m_CurrentRow + $("#inputCruiseSpeed").spinner("value") );
+	}
+    }
+
+
+    function getRowRangeStart()
+    {
+	return Math.max( m_CurrentRow - 2 * ROW_BATCH_SIZE, 0 );
+    }
+
+    function getRowRangeEnd()
+    {
+	return Math.min( m_CurrentRow + 6 * ROW_BATCH_SIZE, m_NumRows );
+    }
+
+    var m_SliderTimeout;
+    var m_ResizeTimeout;
+    var m_MouseHoverTimeout;
+    // use a timeout so we don't spam the back end server
+    // with every request between when you start dragging and when you stop
+    function sliderSlid( value )
+    {
+	disableCruiseControl();
+	if ( m_SliderTimeout ) clearTimeout( m_SliderTimeout );
+        m_SliderTimeout = setTimeout( "m_CurrentRow = " + value + ";", 200 );
+    }
+
+    function webGLStart() 
+    {
+	var canvas = get("canvas");
+        gl = initGL(canvas);
+	// bit annoying but required apparenly
+	setTimeout( resizeCanvas, 1 );
+
+	$("#slider").slider( { 
+	    orientation:"vertical", 
+	    min : 0, 
+	    max : m_NumRows - 1, 
+	    value : 0, 
+	    slide : function( event, ui ) {
+		sliderSlid( ui.value );
+	    }
+	} );
+
+	$("#zoomSlider").slider( { 
+	    min : 5, 
+	    max :  200, 
+	    value : m_Distance, 
+	    slide : function( event, ui ) {
+		var oldDistance = m_Distance;    
+		m_Distance = ui.value;
+		m_Eye[1] *= ( m_Distance / oldDistance );
+		calcEyePos();
+	    }
+	} );
+
+
+        initShaders();
+	
+        gl.clearColor(0.2, 0.2, 0.58, 1.0); //background color
+        gl.enable(gl.DEPTH_TEST);
+	
+	$("#canvas").attr("tabindex", 0).
+            keydown( handleKeyDown  ).
+            keyup( handleKeyUp ).
+            focusout( function() { m_CurrentlyPressedKeys = []; } );
+	
+	calcEyePos();
+	
+	m_Road = createRoad( gl, m_ColumnData );
+	
+	
+	
+	m_Font = createFont( gl, m_TextShaderProgram, "font/font.xml" );
+	 
+	
+	createColumnLabelText();
+	
+	
+	tick();
+   }
+
+   function resizeThings( )
+   {
+       var canvas = get("canvas");
+       var jqCanvas = $("canvas");
+       canvas.style.height = window.innerHeight - jqCanvas.offset().top - 20;
+       get("slider").style.height = get("canvas").style.height;
+       get("searchResults").style.maxHeight = window.innerHeight - 215;
+
+       
+       var checkboxContainer = get("stageCheckboxes" );
+       var bookmarks = get("bookmarks" );
+       var top = $(checkboxContainer).offset().top;
+       var size = ( window.innerHeight - top ) * 0.5 - 40;
+       checkboxContainer.style.height = size;
+       bookmarks.style.height = size;
+       
+   }   
+
+   function resizeCanvas()
+   {
+       var canvas = get("canvas");
+       canvas.width = $(canvas).width();
+       canvas.height = $(canvas).height();
+
+       gl.viewportWidth = canvas.width;
+       gl.viewportHeight = canvas.height
+       
+   }
+
+   function createColumnLabelText()
+   {
+       var whiteColumnText = "";
+       var blackColumnText = "";
+       
+       m_AllTextArray = [];
+       var numCols = m_ColumnData[ "NumColumns" ];
+    var tmask = m_ColumnData.TcolumnMask;
+	var tmaskarr = tmask.split(" ");
+       
+       for ( var i = 0; i < numCols; ++i )
+       {
+       
+            var IdColumn = m_ColumnData[i]["IdColumn"];
+            var dataColumn = m_ColumnData[i]["DataColumn"];
+	 
+	 
+	   var colInfo = m_ColumnData[ i ];
+
+
+        if (tmaskarr[i] == -1)  
+	//   if ( ( m_ColumnData.columnMask &  ( 1 << groupIndex ) ) == 0 )
+	   {
+	       continue;
+	   }
+           
+	   var name = colInfo[ "Name" ] + ' ' + colInfo["IdColumn"];
+           if ( colInfo["DataColumn"] != -1 )
+           {
+	       whiteColumnText += name;
+           }
+           else
+           {
+	       blackColumnText += name;
+           }
+           whiteColumnText += "\n";
+           blackColumnText += "\n";
+		
+	   m_AllTextArray[ m_AllTextArray.length ] = name;
+	   
+       }
+	
+	m_WhiteText = new TextString( whiteColumnText, gl, m_Font, m_TextShaderProgram );
+	m_WhiteText.color = [1,1,1];
+	
+	m_BlackText = new TextString( blackColumnText, gl, m_Font, m_TextShaderProgram );
+	m_BlackText.color = [0,0,0]; 
+	   
+   }
+   
+   function finishEditingBookmark( li )
+   {
+       li.anchor.innerHTML = li.editField.value;
+       li.name = li.editField.value;
+       li.removeChild( li.editField );
+       li.editField = null;
+       li.anchor.style.display = "inline";
+       writeBookmarksToCookie();
+
+   }
+
+   function cancelEditingBookmark( li )
+   {
+       li.removeChild( li.editField );
+       li.editField = null;
+       li.anchor.style.display = "inline";       
+   }
+
+   function editBookmarkName( li )
+   {
+       li.anchor.style.display = 'none';
+       var editField = document.createElement( "input" );
+       li.editField = editField;
+       editField.value = li.anchor.innerHTML;
+       li.appendChild( editField );
+       editField.focus();
+       $(editField).blur( function() {
+	   cancelEditingBookmark( li );
+       }).keyup(function(event){
+	   if(event.keyCode == 13){
+	       finishEditingBookmark( li );
+	   }
+	   else if ( event.keyCode == 27 )
+	   {
+	       cancelEditingBookmark( li );
+	   }
+       });
+   }
+
+   function createBookmark( row, name, color )
+   {
+       var li = document.createElement( "li" );
+       li.innerHTML = '<span style="background:' + color + ';width:16px;float:left;border:1px solid black">&nbsp;</span>&nbsp;<a href="javascript:jumpToRow( ' 
+	   + row +' ) ;">' + name + '</a></li>';
+       
+       // store these off so we can get them later
+       li.row = row;
+       li.name = name;
+       li.color = color;
+       var list = get("bookmarks");
+       list.appendChild( li );
+       li.anchor = li.lastChild;
+
+       $( li ).dblclick( function() {
+	   editBookmarkName( li );
+       } );
+
+   	}
+   	
+   	function invertCheckboxes(g){
+   	  
+   	var elems = document.getElementById("stageCheckboxes").getElementsByTagName("input")
+		
+		 var a = 0;		 
+		for(key = 0; key < elems.length; key++){
+		  
+   			var chbx =  document.getElementById(elems[key].id)
+   			 
+   			if(chbx.checked == false) chbx.checked = true;
+   			else chbx.checked = false;
+   			
+   			if(g == 'all')chbx.checked = true;
+   			if(g == 'none')chbx.checked = false;
+   		}
+   		
+   		updateMask(-1);
+		updateStageMask();
+   		
+   	}
+///////////////////////////////////////////////////////////////////////////////////////////   	
+   	function reGroupCols(numa){
+   	
+	
+	if(storage_ColumnData === undefined)
+		storage_ColumnData = JSON.parse(JSON.stringify(m_ColumnData));
+   
+   	if(numa == -2){
+   		
+   		colOrder.length = 0;
+		numOrder.length = 0;
+   		m_ColumnData = storage_ColumnData;
+   		
+   	}
+   	else{	
+   	var numColumns = storage_ColumnData["NumColumns"]; 
+   	var numDataColumns = storage_ColumnData["NumDataColumns"];
+   	
+   	
+   	var t_ColumnData = {}
+   	for(i in m_ColumnData ) 
+   		if( !is_numeric(parseInt(i))) 
+   			t_ColumnData[i] = m_ColumnData[i]
+   	m_ColumnData = t_ColumnData
+   
+   
+   		
+   	var testParts = [];
+   	var f = 0;
+    
+   	
+   	for ( var  i = 0; i < numColumns; ++i )
+	   {
+	   var colInfo = storage_ColumnData[ i ];
+   
+		   if ( colInfo["DataColumn"] == -1 ) {
+		
+				continue; //  not a header
+	   
+		   }
+			var f = 0;
+			var Ns = colInfo["Name"].split("/");
+			for(ks in  Ns){
+				k = Ns[ks]								
+			if(typeof(k) === 'function')
+			  	continue	
+				if(testParts[f] === undefined)
+					testParts[f] = {};
+					testParts[f][k] = 1
+		 		f++;
+			}
+		}
+ 
+   		var nc = 0;
+   		var p = '';
+   		var c = 0;
+   		var col = 0;
+    	var GroupIndex	= 0; 
+    	var Names = [];
+   		colOrder.length = 0;
+		numOrder.length = 0;
+   		var DataColumn = 0;
+   		var nc = 0;
+   		var shift = 0;
+   		var cc = 0;
+   		dd =  0;
+   		for(d in storage_ColumnData)
+   			dd++
+   		 
+   			for(hh in testParts[numa]){
+				for(i = 0; i <  numColumns; i++){
+					 
+					if(storage_ColumnData[i]["DataColumn"] == -1)	
+						continue
+					els = storage_ColumnData[i]["Name"].split("/");
+					if( hh == els[numa])	
+						Names[DataColumn++] = storage_ColumnData[i]["Name"];
+
+			 	}
+			 	
+			 	if(Names[Names.length-1]!="Genes")
+			 		Names[DataColumn] = "Genes";
+			}	
+			
+			c=0;
+			
+			for(l in testParts[numa])
+				c++
+			 
+			for (i = 0; i < Names.length; i++){
+			
+			els = Names[i].split("/");
+			
+			
+			m_ColumnData[ nc ] = {}
+			
+			if(i == 0){
+				m_ColumnData[ nc ]["Name"] = els[numa]
+				m_ColumnData[ nc ]["DataColumn"] = -1
+				m_ColumnData[ nc ]["StatName"] = ""
+				m_ColumnData[ nc ]["GroupIndex"] = GroupIndex
+				m_ColumnData[ nc ]["IdColumn"] = nc
+				m_ColumnData[ nc++ ]["bg"] = null
+				p = els[numa]
+ 				 
+ 			}
+ 			else if(els[numa] != p && i != 0){
+
+ 				m_ColumnData[ nc ]["Name"] = p 
+				m_ColumnData[ nc ]["DataColumn"] = -1
+				m_ColumnData[ nc ]["StatName"] = ""
+				m_ColumnData[ nc ]["GroupIndex"] = GroupIndex++
+				m_ColumnData[ nc ]["IdColumn"] = nc
+				m_ColumnData[ nc++ ]["bg"] = null
+				
+			 if(Names[i] != 'Genes'){
+			 	m_ColumnData[ nc ] = {}
+				m_ColumnData[ nc ]["Name"] = els[numa]
+				m_ColumnData[ nc ]["DataColumn"] = -1 
+				m_ColumnData[ nc ]["StatName"] = ""
+				m_ColumnData[ nc ]["GroupIndex"] = GroupIndex
+				m_ColumnData[ nc ]["IdColumn"] = nc
+				m_ColumnData[ nc++ ]["bg"] = null
+				p = els[numa]
+				}
+ 			 
+ 			}
+ 			 			 
+				m_ColumnData[ nc ] = {}
+ 				m_ColumnData[ nc ]["Name"] = Names[ i ]
+				m_ColumnData[ nc ]["DataColumn"] = ++cc
+				m_ColumnData[ nc ]["StatName"] = ''
+				m_ColumnData[ nc ]["GroupIndex"] = GroupIndex
+				m_ColumnData[ nc ]["IdColumn"] = nc
+				m_ColumnData[ nc++ ]["bg"] = null
+  			
+		}
+
+
+			m_ColumnData["NumDataColumns"] = cc 
+			m_ColumnData["NumColumns"]= nc
+			m_ColumnData["numVisibleColumns"] = nc
+			
+			for(i in m_ColumnData){
+				if(is_numeric(parseInt(i))){	
+					els = m_ColumnData[i].Name.split("/");
+					if(els.length == 1){
+						colOrder[i] = null;
+						numOrder[i] = null;
+						continue
+						}			 	
+					for(j in storage_ColumnData){
+						if(storage_ColumnData[j].Name == m_ColumnData[i].Name){ 
+							colOrder[m_ColumnData[i].DataColumn] = storage_ColumnData[j].DataColumn;
+							numOrder[j] = i;
+						}
+					}   
+				}
+			}
+			colOrder[cc] = cc
+			//for(s in colOrder)
+			//document.write(JSON.stringify(s + '  ' +colOrder[s] + '<br>'));
+			//document.write(JSON.stringify(storage_ColumnData));	
+			//document.write(JSON.stringify(m_ColumnData));
+		}		
+   	}
+	function	updateMask(numa){
+	
+	
+	if(numa != -1)
+	 reGroupCols(numa)
+	 
+		var numColumns = m_ColumnData["NumColumns"]; 
+		//alert(numColumns)
+		var div = document.getElementById('stageCheckboxes')
+		var elems = div.getElementsByTagName('input')
+		var numVisibleColumns = 0
+		var Boxes = []
+		var i = 0
+		var mask = ''
+		
+		for(key in elems){
+		 
+		if(typeof(elems[key]) != 'object') continue;
+	//document.write(elems[key].id + "<br>")
+		var chbx =  document.getElementById(elems[key].id)
+		 //alert(elems[key].id + "-"+ chbx.checked)
+		if(chbx.checked == false) continue;
+		
+		 
+			Boxes[i] = elems[key].getAttribute("value")
+			i++
+	
+		}
+ 
+ 
+		for ( var  j = 0; j < numColumns; ++j )
+		{
+			var f = 0
+			var g = 0
+			var colInfo = m_ColumnData[ j ];
+			if ( colInfo["DataColumn"] == -1 ) {
+				mask = mask + '1 '
+				numVisibleColumns++
+				continue; //  not a header
+   
+			}
+			var names = colInfo["Name"].split("/");
+			for(ks in names){
+				g++
+				if(in_array(names[ks], Boxes)){
+			
+				  f++
+			
+				}
+			
+			}
+			
+			if(f < g)mask = mask + '-1 '
+			else {
+				mask = mask + '1 '
+				numVisibleColumns++
+				}
+		}  
+		//alert(mask)
+    	m_ColumnData.TcolumnMask = mask;
+        m_ColumnData.numVisibleColumns = numVisibleColumns;
+	  
+	}
+	
+	 
+	
+	 
+	 
+   function createStageCheckboxes()
+   {
+       var numColumns = m_ColumnData["NumColumns"];
+       var checkboxContainer = get("stageCheckboxes" );
+
+       var prevGroup =  -1;
+       var columnMask = 0;
+       var TcolumnMask = '';
+       var numVisibleColumns = 0;
+       var testParts = [];
+        
+       
+           
+/////////////////////////// parse test name into components
+
+
+	for ( var  i = 0; i < numColumns; ++i )
+	   {
+	   var colInfo = m_ColumnData[ i ];
+   
+		   if ( colInfo["DataColumn"] == -1 ) {
+		
+			continue; //  not a header
+	   
+		   }
+			var f = 0;
+			var Ns = colInfo["Name"].split("/");
+			for(ks in  Ns){
+				 
+				k = Ns[ks]
+								
+			 if(typeof(k) === 'function')
+			  	continue
+			
+				if(testParts[f] === undefined)
+					testParts[f] = {};
+				
+				if(testParts[f][k] === undefined)
+					{
+					
+					testParts[f][k] = ''
+					testParts[f][k] =  i + ''	
+			
+					}
+				else
+					{
+					testParts[f][k] = testParts[f][k] + ',' +  i	
+					}
+		 		f++;
+			}
+
+		}
+ 
+ 
+/////////////////////////////
+
+       for ( var  i = 0; i < numColumns; ++i )
+       {
+	   var colInfo = m_ColumnData[ i ];
+	   
+           if ( colInfo["DataColumn"] == -1 ) {
+           	TcolumnMask = TcolumnMask + '1 ';
+           	++numVisibleColumns
+           continue; //  not a header
+           }    
+	       	TcolumnMask = TcolumnMask + '1 ';
+	     	++numVisibleColumns
+       } 
+       
+       var tableConteiner = document.createElement( "table" );
+       checkboxContainer.appendChild( tableConteiner );
+       var trConteiner = document.createElement( "tr" );
+       tableConteiner.appendChild( trConteiner );
+       for ( ii in testParts ) {
+       
+       var tdConteiner = document.createElement( "td" );
+       tdConteiner.style.verticalAlign = "top"
+       tdConteiner.style.backgroundColor = "eeeeee"
+       
+       
+       
+       for ( key in testParts[ii] )
+       {    
+        
+	   var groupIndex = testParts[ii][key];
+           if ( groupIndex != prevGroup )
+           {
+               var name =  key;
+           
+               var div = document.createElement( "div" );
+               
+               var checkbox = document.createElement( "input" );
+               checkbox.setAttribute("type", "checkbox");
+               checkbox.setAttribute("id", name);
+               checkbox.setAttribute("checked", "true");
+               checkbox.setAttribute("value", name);
+               checkbox.setAttribute("groupIndex", groupIndex );
+               var span = document.createElement( "label" );
+               span.innerHTML = name;
+               span.style.marginLeft = "0px";
+               span.setAttribute("for", name);
+               span.style.fontSize = "8px";
+	       
+               div.appendChild( checkbox );
+               div.appendChild( span );
+               tdConteiner.appendChild( div );
+               
+               
+               $(checkbox).click( function() { 
+               		updateMask(-1);
+		   	   		updateStageMask( this.getAttribute("groupIndex") ,
+				    this.checked, this.value );
+				  	
+               } );
+        
+	       	columnMask |= ( 1 << groupIndex );
+               prevGroup = groupIndex;
+	   		}
+	   		
+       } 
+       //div.appendChild( hr );
+       trConteiner.appendChild( tdConteiner );
+  
+  }
+ // alert(TcolumnMask)
+       	m_ColumnData.columnMask = columnMask;
+    	m_ColumnData.TcolumnMask = TcolumnMask;
+        m_ColumnData.numVisibleColumns = numVisibleColumns;
+        
+   }
+ 
+  
+      function updateStageMask( )
+   {
+   
+   
+
+     
+    
+       var numVisibleColumns = m_ColumnData.numVisibleColumns
+       var numColumns = m_ColumnData["NumColumns"];
+   
+           
+	
+       m_ColumnData.numVisibleColumns = numVisibleColumns;
+
+       m_Road.regenerateRoad( gl, m_ColumnData );
+       createColumnLabelText();
+
+       for ( var i = 0; i < m_RowCacheList.length; ++i )
+       {
+	   m_RowCacheList[i].regenerateBuffers( gl, m_ColumnData );
+       }
+	    
+       for ( var i = 0; i < m_DyingRowCacheList.length; ++i )
+       {
+	   m_DyingRowCacheList[i].regenerateBuffers( gl, m_ColumnData );
+       }
+
+       var size = m_ColumnData.numVisibleColumns * 0.5;
+       m_OffsetX = Math.max( m_OffsetX, -size );       
+       m_OffsetX = Math.min( m_OffsetX,  size );       
+
+   }
+
+   function handleLoadedColumns( columnData )  
+   {
+
+       m_ColumnData = columnData;
+       m_ColumnData.numVisibleColumns = m_ColumnData["NumColumns"];
+ 
+       m_NumRows = m_ColumnData["NumRows"];
+
+       createStageCheckboxes();
+      
+       webGLStart();
+
+       var size = m_ColumnData.numVisibleColumns * 0.5;
+       m_OffsetX = Math.max( m_OffsetX, -size );       
+       m_OffsetX = Math.min( m_OffsetX,  size );       
+       
+       var canvas = get("canvas");
+       canvas.focus();
+       canvas.className = "canvasBorder";
+
+       
+       jumpToRow( m_CurrentRow ); // this makes sure any row from the URL is clamped
+       
+       var wantPolarized = {{ polarized }};
+       if ( wantPolarized )
+       {
+	   m_Polarized = true;
+	   m_Road.polarized = true;
+	   m_Road.regenerateRoad( gl, m_ColumnData );
+	   
+	   getPolarizationInfo();
+
+       }
+       
+   }
+
+   function doSearch()
+   {
+       var text = get("searchBox").value;
+
+       if ( !text) 
+       {
+	   get("searchBox").focus();
+	   return;
+       }
+       
+       $("#searchResults").hide( "fade" );
+       get("waitingSearchResults" ).style.display="inline";
+       get("searchButton" ).style.display="none";
+       var request = new XMLHttpRequest();
+       request.open("GET", "search.php?module=" + m_module + "&chr=" + m_chr + "&search=" + text + "&type=" + get("searchType").value );
+       request.onreadystatechange = function () {
+           if (request.readyState == 4) {
+           // alert(request.responseText)
+           handleSearchResults(parseJSONAndCheckErrors(request.responseText) );
+           }
+       }
+       request.send();
+   }
+
+   function generateBookmarksFromCookie()
+   {
+       var cookie = $.cookie( m_BookmarksCookieName );
+       if ( !cookie ) return;
+       
+       var cookieData = null;
+       try 
+       {
+	   cookieData = JSON.parse( cookie );
+       }
+       catch ( e )
+       {
+	   return;
+       }
+       
+       for ( var i = 0; i < cookieData.length; ++i )
+       {
+	   var c = cookieData[i];
+	   createBookmark( c.row, c.name, c.color );
+       }
+   }
+
+   function writeBookmarksToCookie() 
+   {
+       var cookieData = [];
+       var i = 0;
+       $("#bookmarks li").
+	   each( function() 
+		 {
+		     var c = new Object();
+		     c.name = this.name;
+		     c.row = this.row;
+		     c.color = this.color;
+		     cookieData[i] = c;
+		     ++i;
+		 } );
+       
+       if ( i == 0 )
+       {
+	   $.cookie( m_BookmarksCookieName, null );
+       }
+       else
+       {
+	   var cookieString = JSON.stringify( cookieData );
+	   $.cookie( m_BookmarksCookieName, cookieString,  { expires: 10000000 }  );
+       }
+       
+   }
+ 
+   function closeLinkBox()
+   {
+       $("div#linkBox").fadeOut("fast", function() { $(this).remove(); } );       
+       $( "#btnLink" ).button( "option", "disabled", false );
+   }
+
+   function initDisplayPage()
+   {
+       resizeThings();
+
+       updateRowName();
+       
+       $("#tabs").tabs();      
+
+       $("#chkHighSpeed").button();      
+       $("#btnForward").button( { 
+       icons: {
+           primary: "ui-icon-triangle-1-n"
+       },
+           text: false } );
+       
+       $("#btnBack").button( { 
+       icons: {
+           primary: "ui-icon-triangle-1-s"
+       },
+           text: false } );      
+       
+       $("#btnLeft").button( { 
+       icons: {
+           primary: "ui-icon-triangle-1-w"
+       },
+           text: false } ); 
+        $("#btnMain").button( { 
+       icons: {
+           primary: "ui-icon-triangle-1-w"
+       },
+           text: true } );      
+
+       $("#btnRight").button( { 
+       icons: {
+           primary: "ui-icon-triangle-1-e"
+       },
+           text: false } );      
+       
+       $("#searchButton").button( { 
+       icons: {
+           primary: "ui-icon-search"
+       },
+           text: false } ).click( doSearch );      
+       
+       $("#btnScreenShot").button( {
+	   icons: {
+	       primary: "ui-icon-image"
+	   } 
+       }).click( function() {
+	   window.open( get("canvas" ).toDataURL() );
+	   /*
+	     var dataURL = get("canvas" ).toDataURL();
+	     var download = dataURL.replace( "image/png", "image/octet-stream" );
+	     document.location.href = download;
+	   */
+       } );     
+
+       $("#chkPolarize").button(  ).click( function() {
+	   disableCruiseControl();
+	   closeLinkBox();
+	   m_Polarized = this.checked;
+	   if ( m_Polarized )
+	   {
+	       m_Road.polarized = true;
+	       m_Road.regenerateRoad( gl, m_ColumnData );
+
+	       getPolarizationInfo();
+	   }
+	   else
+	   {
+	       clearPolarizationData();
+	   }
+       } );     
+
+
+       $("#btnReset").button( ).click( function() {
+	   m_Eye = vec3.create( [0, 40, 70] );
+	   m_AngleX = 0;
+	   m_Distance = 80.0;
+	   m_OffsetX = 0.0;
+	   $("#zoomSlider").slider( "value", m_Distance );
+	   calcEyePos();
+
+       } );     
+
+       $("#btnLink").button( { 
+	   icons: {
+               primary: "ui-icon-link"
+	   } } ).click( function() { 
+	       if ( get( 'linkBox' ) != null ) 
+	       {
+		   return;
+	       }
+	       disableCruiseControl();
+	       $( "#btnLink" ).button( "option", "disabled", true );
+	       var eyePosString = '[' + m_Eye[0] + ',' + m_Eye[1] + ',' + m_Eye[2] + ']';
+	       var url = CurrentURL + "?module=" + m_module + "&chr=" + m_chr;
+	       url += '&row=' + m_CurrentRow;
+	       url += '&distance=' + m_Distance;
+	       url += '&anglex=' + m_AngleX;
+	       url += '&offsetx=' + m_OffsetX;
+	       url += '&eyepos=' + escape( eyePosString );
+	       if ( m_Polarized )
+	       {
+		   url += '&polarized=true';
+	       }
+	       
+	       var linkButton = $('#btnLink'); 
+	       var offset = linkButton.offset();
+	       
+	       $('body').append( '<div id="linkBox" class="ui-widget-header ui-corner-all">' 
+				 + 'Copy and paste the link below into email or IM.'
+				 + '<span id="linkBoxClose" class="ui-icon ui-icon-close" style="cursor:pointer; float:right; margin:0 7px 20px 0;"></span>' 
+				 + '<br/><input id="linkBoxInput"size="80" value="' + url + '"/></div>' );
+	       var box = $('div#linkBox');
+	       box.css('top', ( offset.top + linkButton.height() + 5 ) + 'px' ).
+		   css("left", ( ( offset.left  + linkButton.width()  ) - ( box.width() + 20 ) ) + 'px' ).fadeIn("fast");
+	       $('#linkBoxClose').click( function() {
+		   closeLinkBox();
+	       });
+	       
+	       var linkInput  = get("linkBoxInput");
+	       linkInput.focus();
+	       linkInput.select();
+			    
+	   } );
+       
+       $("#chkHelp").button( { 
+	   icons: {
+               primary: "ui-icon-help"
+	   } } ).click( function() {
+	       disableCruiseControl();
+	       vtip.enabled = this.checked;
+	       if ( this.checked )
+	       {
+		   $("body").addClass( "helpMode");
+	       }
+	       else
+	       {
+		   $("body").removeClass( "helpMode");
+	       }
+	   } );
+       
+       $("#btnAddBookmark").button( { 
+	   icons: {
+	       primary: "ui-icon-plus"
+	   }, 
+	   text: false } ).click( function() {
+	       // can't add a bookmark until the row streams in
+	       if  ( getRowData( m_CurrentRow ) != null )
+	       {
+		   createBookmark( m_CurrentRow, getRowName( m_CurrentRow ), getRowColor( m_CurrentRow ) ); 
+		   writeBookmarksToCookie();
+	       }
+	   } );   
+       
+       $("#btnRemoveBookmark").button( { 
+	   icons: {
+	       primary: "ui-icon-minus"
+	   }, 
+	   text: false } ).click( function() {
+	       if ( m_SelectedBookmarks.length )
+	       {
+		   $("#dialog-confirm").dialog('open');
+	       }
+	   } );
+       
+       $("#bookmarks button").button( { 
+	   icons: {
+	       primary: "ui-icon-extlink"
+	   }, 
+	   text: false } ).click( function() {
+	       
+	   } );   
+				  
+       $("#controlButtons button").mouseup( function() {
+	   this.buttonDown = false;
+	   m_CurrentlyPressedKeys[ this.getAttribute( "simulateKeyCode" )  ]  = false;
+       } ).mousedown( function() {
+	   this.buttonDown = true;
+	   m_CurrentlyPressedKeys[ this.getAttribute( "simulateKeyCode" )  ]  = true;
+       } ).mouseleave( function() {
+	   if ( this.buttonDown )
+	   {
+               m_CurrentlyPressedKeys[ this.getAttribute( "simulateKeyCode" )  ]  = false;
+               this.buttonDown = false;
+	   }
+       } );
+
+       $("#chkCruiseControl").button().click( function() { 
+	   m_CruiseControl = this.checked;
+       });      
+			    
+       $("#chkInvert").button().click( function() { 
+	   m_InvertView = this.checked;
+       });      
+       
+       
+       $( "#bookmarks" ).selectable( 
+	   { cancel: 'a, span, input', 
+	     stop: function() {
+		 m_SelectedBookmarks = [];
+		 $( ".ui-selected", this ).each(function() {
+		     m_SelectedBookmarks.push( this );
+		 });
+	     } } ); 
+
+	   $('fieldset legend').click(function() {
+			   $(this).next().fadeToggle("fast");
+			    resizeThings();
+			   return false;
+		   });;
+
+       $( "#dialog-confirm" ).dialog({
+	   resizable: false,
+	   modal: true,
+	   autoOpen: false, 
+	   buttons: {
+	       "Delete": function() {
+		   var bookmarks = get("bookmarks");
+		   for ( var i = 0; i <  m_SelectedBookmarks.length; ++i )
+		   { 
+		       bookmarks.removeChild( m_SelectedBookmarks[i] );
+		   }
+		   writeBookmarksToCookie();
+		   $( this ).dialog( "close" );
+	       },
+	       Cancel: function() {
+		   $( this ).dialog( "close" );
+	       }
+	   }
+       });
+
+					 
+       $("#reportTable a").button().click( function() { 
+	   var format = this.getAttribute("format");
+	   var reportType = this.getAttribute("reportType");
+	   var result = getUrlVar();
+	   window.open( 'report.php?module=' + m_module + "&chr=" + m_chr + '&row=' + m_CurrentRow + '&format=' + format 
+			+ '&reportType=' + reportType +  "&stageMask="+ m_ColumnData.columnMask  + "&threshold=" + result['threshold'] , '_blank' );
+       } ); 
+       
+       $(window).resize(function () {  
+	   if( m_ResizeTimeout )
+	   {
+	       clearTimeout( m_ResizeTimeout );
+	   }
+	   resizeThings( gl ); // adjustt stuff like scrollbars etc straight away
+	   // use timeout to actually resize the canvas rendering surface
+           m_ResizeTimeout = setTimeout( resizeCanvas, 200 );	
+       });
+
+       var cruiseCookie = $.cookie( cruiseControlCookieName );
+       if ( cruiseCookie )
+       {
+	   $("#inputCruiseSpeed").attr("value", cruiseCookie );
+       }
+
+       var highSpeedCookie = $.cookie( highSpeedCookieName );
+       if ( highSpeedCookie )
+       {
+	   $("#inputHighSpeed").attr("value", highSpeedCookie );
+       }
+
+       $("#inputCruiseSpeed").spinner({ min: -25, max: 25 }).change( function() {
+	   $.cookie( cruiseControlCookieName, $(this).spinner("value"), { expires: 10000000 } );
+       } );
+                           
+       $("#inputHighSpeed").spinner({ min: 1, max: 25 }).change( function() { 
+	   $.cookie( highSpeedCookieName, $(this).spinner("value"), { expires: 10000000 } );
+       } );
+       
+       
+       generateBookmarksFromCookie();
+
+       var request = new XMLHttpRequest();
+//alert("getColumns.php?module=" + m_module + "&chr=" + m_chr)
+       request.open("GET", "getColumns.php?module=" + m_module + "&chr=" + m_chr);
+       request.onreadystatechange = function () {
+           if (request.readyState == 4) {
+               handleLoadedColumns(parseJSONAndCheckErrors(request.responseText) );
+           }
+       }
+       request.send();
+       
+       var welcomeCookieName = "GWASWelcome";
+       var welcomeCookie = $.cookie( welcomeCookieName );
+       if (! welcomeCookie )
+       {
+	   $( "#welcomeDialog" ).dialog({
+	       resizable: false,
+	       modal: true,
+	       autoOpen:true, 
+	       minWidth: 400,
+	       close : function() {  
+		  	$.cookie( welcomeCookieName, "true", { expires: 10000000 } ) 
+		   $("#chkHelp").click();
+		   $("body").addClass( "helpMode");
+		   vtip.enabled = true;
+	       },
+	       buttons: {
+		   "OK": function() {
+		       $( this ).dialog( "close" );
+		   }		   
+	       } });
+       }
+       else
+       {
+	   $( "#welcomeDialog" ).remove();
+       }
+   }
+
+   function handleSearchResults( data )
+   {	 
+       get("waitingSearchResults" ).style.display="none";
+       get("searchButton" ).style.display="inline";
+       $("#searchResults").show( "fade" );
+       var results = get("searchResults" );
+       var resultsHTML = "";
+      // alert(data)
+       if ( data == -1 )
+       
+       		resultsHTML += "<div style='cursor:pointer'  > Not found </div>";
+      
+       else
+       
+       for ( var i = 0; i < data.length; ++i )
+       {
+       	//alert(data[i].length)
+       		if( data[i].length == 2 || data[i][2] == m_chr)
+       		resultsHTML += "<div style='cursor:pointer'  onClick='jumpToRow(" + data[i][1] + ");'>" + data[i][0] + "</div>";
+       		else
+       		resultsHTML += "<div style='cursor:pointer;color:grey;'  onClick='jumpToRowAndChr(" + data[i][1] + ", " + data[i][2] + ");'>" + data[i][0] + "</div>";
+       }
+
+       results.innerHTML = resultsHTML; 
+       
+   }
+
+   $("#searchBox").keyup(function(event){
+       if(event.keyCode == 13){
+       doSearch();
+       }
+   });
+
+    function clearPolarizationData()
+    {
+	if ( m_Polarized )
+	{
+            $("#chkPolarize").click();
+	    m_Polarized = false;
+	}
+
+	for ( var i = 0; i < m_RowCacheList.length; ++i )
+	{
+	    var rowCache = m_RowCacheList[i];
+	    rowCache.polarizationData = null;
+	    if ( rowCache.data )
+	    {
+		rowCache.regenerateBuffers( gl, m_ColumnData );
+	    }
+	    
+	}
+	m_Road.polarized = false;
+	m_Road.regenerateRoad( gl, m_ColumnData );
+
+	m_PolarizationData = null;
+
+	$('#polarizationMsg').fadeOut("fast")
+	$("#controlsBox *").button( "option", "disabled", false );
+	$("#controlsBox input").spinner( "option", "disabled", false );
+
+    }
+
+    function handleLoadedPolarizationData( polData )
+    {
+	if ( !m_Polarized )
+	{
+	    return;
+	}
+
+	for ( var i = 0; i < m_RowCacheList.length; ++i )
+	{
+	    var rowCache = m_RowCacheList[i];
+	    rowCache.polarizationData = polData;
+	    if ( rowCache.data )
+	    {
+		rowCache.regenerateBuffers( gl, m_ColumnData );
+	    }
+	    
+	}
+
+	m_PolarizationData = polData;
+	
+    }
+
+    function getPolarizationInfo()
+    {
+	var request = new XMLHttpRequest();
+	//alert("getPolarization.php?module=" + m_module + "&chr=" + m_chr + "&row=" + m_CurrentRow );
+	request.open("GET", "getPolarization.php?module=" + m_module + "&chr=" + m_chr + "&row=" + m_CurrentRow  );
+	request.onreadystatechange = function () {
+            if (request.readyState == 4) {
+		handleLoadedPolarizationData(parseJSONAndCheckErrors(request.responseText) );
+            }
+	}
+	request.send();
+	
+	var offset = $("#canvas").offset();
+	
+	var polMsg = $('#polarizationMsg');
+	polMsg.css('top', ( offset.top + 10 ) + 'px' ).
+	    css("left", ( offset.left + 20) + 'px' ).fadeIn("fast");
+
+	$("#controlsBox *").button( "option", "disabled", true );
+	$("#controlsBox input").spinner( "option", "disabled", true );
+
+   }
+   
+   function calcEyePos()
+   {
+       closeLinkBox();
+       
+       m_Eye[0] = ( Math.sin( m_AngleX ) * m_Distance ) + m_LookAt[0];
+       m_Eye[2] = ( Math.cos( m_AngleX ) * m_Distance ) + m_LookAt[2];
+   }
+
+   var m_MouseDown = false;
+   var m_LastMouseX, m_LastMouseY;
+   
+   $("#canvas").mousedown(function(event){
+       if ( m_HoverItem )
+       {
+		   jumpToRow( m_HoverItem.rowNumber );
+       }
+       m_MouseDown = true;    
+       m_LastMouseX = event.pageX;
+       m_LastMouseY = event.pageY;
+       hideHoverText();
+   }).mouseup(function(event){
+       m_MouseDown = false;    
+   }).mouseleave(function(event){
+     //  hideHoverText();
+   });
+
+   function hideHoverText()
+   {
+       $("#hoverText").fadeOut();
+       //$("#hoverText").hide();
+       clearTimeout( m_MouseHoverTimeout );
+       m_HoverItem = null;
+   }  
+
+   $("#canvas").mousemove(function(event){
+
+       if ( m_MouseDown )
+       {
+	   // change view
+	   var dx = event.pageX - m_LastMouseX;
+	   var dy = event.pageY - m_LastMouseY ;
+	   
+	   m_Eye[1] += dy;
+	   m_Eye[1] = Math.max( m_Eye[1], 0.0 );
+	   
+	   m_AngleX += dx * -0.01;
+	   m_AngleX = Math.max( m_AngleX,  - Math.PI * 0.5 );
+	   m_AngleX = Math.min( m_AngleX,   Math.PI * 0.5 );
+	   
+	   calcEyePos();
+	   
+	   m_LastMouseX = event.pageX;
+	   m_LastMouseY = event.pageY;
+       }
+       else
+       {
+	    if ( vtip.enabled ) return;
+			    
+	   //get("hoverText").style.display = "none";
+	   hideHoverText();
+	   var canvas = get("canvas");
+	   canvas.mouseXPos = event.pageX;
+	   canvas.mouseYPos = event.pageY;
+
+	   m_MouseHoverTimeout = setTimeout( showHoverText, 500 );
+	   
+       }
+   });
+
+   function getDescriptiveText( eyePos, mouseDir )
+   {
+   
+   
+       m_HoverItem = null;
+       for ( var i = 0; i < m_RowCacheList.length; ++i )
+       {
+	   var rowCache = m_RowCacheList[i];
+	   var offset = rowCache.startRow - m_CurrentRow;
+	   
+	   var ret = rowCache.getDescriptiveText( offset, eyePos, mouseDir, m_InvertView );
+	   if ( ret )
+	   {
+	       m_HoverItem = new Object;
+	       m_HoverItem.rowCache = rowCache;
+	       m_HoverItem.indexStart = ret[1];
+	       m_HoverItem.rowNumber = ret[2];
+	       return ret[0];
+	   }
+       }
+	    
+       var hitRoad = testAABBIntersection( m_Road.min, m_Road.max, 
+				       eyePos, mouseDir, 5000 );
+       if ( hitRoad )
+       {
+	   var intersectPos = vec3.create();
+	   var linePos = vec3.create();
+	   vec3.scale( mouseDir, hitRoad[1], linePos );
+	   vec3.add( eyePos, linePos, intersectPos );
+	   var scaled = ( intersectPos[0] - m_Road.min[0] )  / ( m_Road.max[0] - m_Road.min[0] );
+	   mf = Math.floor( m_AllTextArray.length * scaled ) 
+	   return m_AllTextArray[ mf ];
+	   
+	   
+	  
+       }
+       
+       return "";
+   }
+
+   function showHoverText()
+   {
+       var canvas = get("canvas");
+       
+       var left = canvas.mouseXPos - $(canvas).offset().left;
+       var top = canvas.mouseYPos - $(canvas).offset().top;
+       
+       left -= 5; // handle the border
+       top -= 5;
+       top = canvas.height - top;
+
+       var viewportInfo = [ 0, 0, canvas.width, canvas.height ];
+
+       var mousePosition = vec3.create();
+       var identityMatrix = mat4.create();
+       mat4.identity( identityMatrix );
+       
+       var result = GLU.unProject( left, top, 0.0, m_ViewMatrix, 
+				   m_ProjMatrix, viewportInfo , mousePosition );
+       if ( !result )
+       {
+	   return;
+       }
+       var eyeOffset = vec3.create( m_Eye );
+       eyeOffset[0] += m_OffsetX;
+       
+       var mouseVec = vec3.create();
+       vec3.subtract( mousePosition, eyeOffset, mouseVec );
+       vec3.normalize( mouseVec );
+       
+       var text = getDescriptiveText( eyeOffset, mouseVec );
+       if ( text != "" && canvas.mouseXPos < canvas.width) 
+       {
+        
+       
+	   var hoverText = get("hoverText");
+	   hoverText.innerHTML = text;
+	   hoverText.style.left = canvas.mouseXPos - 10;
+	   hoverText.style.top = canvas.mouseYPos - 10; // move it down underneath the cursor
+	   $(hoverText).fadeIn();
+	   $(hoverText).show();
+	   
+       }
+   }
+
+   $("#canvas").mousewheel(function(event, delta){
+       var oldDistance = m_Distance;    
+       m_Distance -= delta * 3;
+       m_Distance = Math.max( m_Distance, 5.0 );
+       m_Eye[1] *= ( m_Distance / oldDistance );
+
+       $("#zoomSlider").slider( "value", m_Distance );
+       calcEyePos();
+       hideHoverText();
+   });
+   
+   
+   function print_r( array, return_val ) {	// Prints human-readable information about a variable
+	// 
+	// +   original by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+	// + namespaced by: Michael White (http://crestidg.com)
+
+	var output = "", pad_char = " ", pad_val = 4;
+
+	var formatArray = function (obj, cur_depth, pad_val, pad_char) {
+		if(cur_depth > 0)
+			cur_depth++;
+
+		var base_pad = repeat_char(pad_val*cur_depth, pad_char);
+		var thick_pad = repeat_char(pad_val*(cur_depth+1), pad_char);
+		var str = "";
+
+		if(obj instanceof Array) {
+			str += "Array\n" + base_pad + "(\n";
+			for(var key in obj) {
+				if(obj[key] instanceof Array) {
+					str += thick_pad + "["+key+"] => "+formatArray(obj[key], cur_depth+1, pad_val, pad_char);
+				} else {
+					str += thick_pad + "["+key+"] => " + obj[key] + "\n";
+				}
+			}
+			str += base_pad + ")\n";
+		} else {
+			str = obj.toString(); // They didn't pass in an array.... why? -- Do the best we can to output this object.
+		};
+
+		return str;
+	};
+
+	var repeat_char = function (len, char) {
+		var str = "";
+		for(var i=0; i < len; i++) { str += char; };
+		return str;
+	};
+
+	output = formatArray(array, 0, pad_val, pad_char);
+
+	if(return_val !== true) {
+		document.write("<pre>" + output + "</pre>");
+		return true;
+	} else {
+		return output;
+	}
+}
+ 
+function is_array( mixed_var ) {	// Finds whether a variable is an array
+	 
+
+	return ( mixed_var instanceof Array );
+}
+
+function in_array(needle, haystack, strict) {	// Checks if a value exists in an array
+	// 
+	// +   original by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+
+	var found = false, key, strict = !!strict;
+
+	for (key in haystack) {
+		if ((strict && haystack[key] === needle) || (!strict && haystack[key] == needle)) {
+			found = true;
+			break;
+		}
+	}
+
+	return found;
+}
+function is_numeric(mixed_var) {
+
+
+  var whitespace =
+    " \n\r\t\f\x0b\xa0\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u200b\u2028\u2029\u3000";
+  return (typeof mixed_var === 'number' || (typeof mixed_var === 'string' && whitespace.indexOf(mixed_var.slice(-1)) === -
+    1)) && mixed_var !== '' && !isNaN(mixed_var);
+}
+
+</script>
+ 
+
+<div id="dialogBox"/></div>
+
+
+</body>
+
+</html>
+

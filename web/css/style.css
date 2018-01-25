@@ -1,0 +1,62 @@
+body
+{ 
+    font: 100.0% "Trebuchet MS", sans-serif; 
+    margin: 15px;
+}
+
+a
+{
+
+   color: #0000ff;        
+   text-decoration: underline;
+}
+
+a:visited
+{
+   color: #0000ff;        
+   text-decoration: underline;
+}
+
+a:hover
+{
+   color: #0000ff;        
+   text-decoration: none;
+
+}
+
+.canvasBorder
+{
+    width:99%;
+    border: 5px solid grey;
+}
+.canvasBorder:focus
+{
+    border: 5px solid #d7ebf9;
+}
+
+fieldset legend { width: 100%; cursor:pointer }
+/*fieldset legend div { margin: 0.3em 0.5em; }*/
+
+.copyright
+{
+    font-size:8pt;
+    text-align:right;
+    width:100%;
+}
+
+#feedback { font-size: 1.4em; }
+#bookmarks .ui-selecting { background: #d7ebf9; }
+#bookmarks .ui-selected { background: #2779AA; color: white; }
+#bookmarks .ui-selected a { background: #2779AA; color: white; }
+#bookmarks { list-style-type: none; margin: 0; padding: 0; width: 100%; }
+#bookmarks li { margin: 3px; padding: 0.4em;  }
+
+.hoverInfo { position: absolute; left:300px; top: 300px; z-index: 10; display: none } 
+
+.helpMode { cursor: help }
+
+#linkBox { position: absolute; display: none; z-index: 50; padding:10px; }
+
+#polarizationMsg { position: absolute; display:none; z-index: 40; padding:10px; font-size:30px;color:white }
+
+.tabWidth { padding:0.5em 0.5em;width:350px; }

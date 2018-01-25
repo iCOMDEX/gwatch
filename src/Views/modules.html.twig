@@ -1,0 +1,23 @@
+{% extends 'layout.html.twig' %}
+
+{% block content %}
+<div id="accordion">
+	
+	{% for module in modules %}
+        <h3>Module {{ module.name }}</h3> 
+        <ul>
+        {% for chr in module.chr %}
+        	<li><a href="/display.php?module={{module.name}}&chr={{loop.index}}" target=_blank>{{ chr }} chromosome</a></li>
+        {% endfor %}
+        </ul>
+        <h3>List of tests & Manhattan plots</h3>
+        <ol>
+        {% for test in module.test %}
+        	<li>{{ test }}</li>
+        {% endfor %}
+        </ol>
+	{% endfor %}
+
+</div>
+
+{% endblock %}
