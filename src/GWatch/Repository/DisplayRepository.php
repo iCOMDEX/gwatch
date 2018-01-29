@@ -211,7 +211,7 @@ class DisplayRepository
 				AND 
 					g.chr = $chr 
 				LIMIT 1
-				) as gene, e.dbn AS effect 
+				) as gene
 		 FROM 
 		 	".$this->module( $module ).".ind r 
 		 JOIN 
